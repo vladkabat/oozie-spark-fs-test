@@ -1,0 +1,33 @@
+<workflow-app xmlns = "uri:oozie:workflow:0.5" name = "simple-Workflow">
+	<start to = "Spark_job" />
+
+	<action name = "Spark_job">
+		<spark xmlns="uri:oozie:spark-action:0.1">
+            <job-tracker>sandbox-hdp.hortonworks.com:8050</job-tracker>
+            <name-node>hdfs://sandbox-hdp.hortonworks.com:8020</name-node>
+            <master>yarn-client</master>
+            <name>spark-job</name>
+			<class>com.epam.vladkabat.Application</class>
+            <jar>/user/root/lib/spark-job-1.0-SNAPSHOT-jar-with-dependencies.jar</jar>
+			<spark-opts>--driver-memory 512m --executor-memory 512m --num-executors 1</spark-opts>
+        </spark>
+
+		<ok to = "Output_HDFS" />
+		<error to = "kill_job" />
+	</action>
+
+	<action name = "Output_HDFS">
+		<fs>
+            <mkdir path='hdfs://sandbox-hdp.hortonworks.com:8020/user/root/output-ozzie'/>
+            <move source='hdfs://sandbox-hdp.hortonworks.com:8020/user/root/orc-homework' target='/user/root/output-ozzie'/>
+        </fs>
+		<ok to = "end" />
+		<error to = "kill_job" />
+	</action>
+
+	<kill name = "kill_job">
+		<message>Job failed</message>
+	</kill>
+
+	<end name = "end" />
+</workflow-app>
